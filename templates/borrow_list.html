@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>📚 Borrowed Books</title>
+
+<!-- ✅ Bootstrap + DataTables CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.datatables.net/2.3.4/css/dataTables.dataTables.css">
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.css">
+
+</head>
+
+<body >
+        <table id="example" class="display table table-striped" style="width:100%">
+        <div class="card shadow-lg"></div>
+            <div class="card-header bg-secondary text-white" >
+      <h3 class="mb-0"  style="height:34px;">📖 Borrowed Books</h3>
+    </div>
+          <thead>
+            <tr>
+              <th>Student ID</th>
+              <th>Student Name</th>
+              <th>Book ID</th>
+              <th>Book Name</th>
+              <th>Borrow Time</th>
+              <th>Borrow Status</th>
+              <th>Return Time</th>
+              <th>Action (Days)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for b in records %}
+            <tr>
+              <td>{{ b.student_id }}</td>
+              <td>{{ b.student_name }}</td>
+              <td>{{ b.book_id }}</td>
+              <td>{{ b.book_name }}</td>
+
+              <!-- ✅ Borrow Time (UTC -> IST) -->
+              <td class="borrow-time" data-utc="{{ b.borrowed_at|date:'c' }}">
+                {{ b.borrowed_at }}
+              </td>
+
+              <!-- ✅ Borrow Status -->
+              <td>
+                {% if b.returned %}
+                  ✅ Returned
+                {% else %}
+                  ❌ Not Returned
+                {% endif %}
+              </td>
+
+              <!-- ✅ Return Time (UTC -> IST if available) -->
+              <td>
+                {% if b.returned_at %}
+                  <span class="return-time" data-utc="{{ b.returned_at|date:'c' }}">
+                    {{ b.returned_at }}
+                  </span>
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+
+              <!-- ✅ Difference in days -->
+              <td>
+                {% if b.returned_at %}
+                  {{ b.borrow_duration_days }} days
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="text-center">No records found</td></tr>
+            {% endfor %}
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Student ID</th>
+              <th>Student Name</th>
+              <th>Book ID</th>
+              <th>Book Name</th>
+              <th>Borrow Time</th>
+              <th>Borrow Status</th>
+              <th>Return Time</th>
+              <th>Action (Days)</th>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+ 
+  
+
+<!-- ✅ JavaScript Libraries -->
+<script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+<script src="https://cdn.datatables.net/2.3.4/js/dataTables.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/dataTables.buttons.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.dataTables.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.print.min.js"></script>
+
+<script>
+// ✅ Initialise DataTable
+const table = new DataTable('#example', {
+  responsive: true,
+  layout: { 
+    topStart: { buttons: ['copy', 'csv', 'excel', 'pdf', 'print'] }
+  }
+});
+
+// ✅ Function to convert UTC to IST for Borrow & Return Times
+function convertUTCtoIST() {
+  // Borrow times
+  document.querySelectorAll('#example tbody .borrow-time').forEach(td => {
+    const utc = td.dataset.utc;
+    if (!utc) return;
+    const dt = new Date(utc);
+    const ist = new Intl.DateTimeFormat('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    }).format(dt);
+    td.textContent = ist + ' (IST)';
+  });
+
+  // Return times
+  document.querySelectorAll('#example tbody .return-time').forEach(td => {
+    const utc = td.dataset.utc;
+    if (!utc) return;
+    const dt = new Date(utc);
+    const ist = new Intl.DateTimeFormat('en-IN', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+      timeZone: 'Asia/Kolkata'
+    }).format(dt);
+    td.textContent = ist + ' (IST)';
+  });
+}
+
+// ✅ Run conversion initially and after any table redraw
+convertUTCtoIST();
+table.on('draw', convertUTCtoIST);
+</script>
+</body>
+</html>

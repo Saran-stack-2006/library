@@ -1,0 +1,15 @@
+<div class="p-3">
+  <!-- Book Title -->
+  <h5 class="fw-bold text-primary">{{ book.title }}</h5>
+
+  <!-- Author -->
+  <p><strong>Author:</strong> {{ book.author|default:"Unknown" }}</p>
+  <hr>
+
+  <!-- Abstract -->
+  {% if book.abstract %}
+    <p class="text-dark">{{ book.abstract|linebreaks }}</p>
+  {% else %}
+    <p class="text-muted fst-italic">No abstract available for this book.</p>
+  {% endif %}
+</div>

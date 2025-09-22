@@ -1,0 +1,118 @@
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Add Student (Scanner Integrated)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/quagga/0.12.1/quagga.min.js"></script>
+    <style>
+        #camera {
+            width: 100%;
+            max-width: 700px;
+            height: 400px;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 auto;
+            position: relative;
+        }
+        #camera video,
+        #camera canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+<div class="container my-5">
+    <div class="card shadow-lg p-4">
+        <h2 class="mb-4 text-center text-primary">👨‍🎓 Add New Student</h2>
+
+       <form method="post" action="/save_student/" >
+    {% csrf_token %}
+
+    <!-- Scanner -->
+    <div class="text-center mb-3">
+        <label class="form-label fw-bold d-block mb-2">Live Barcode Scanner</label>
+        <div id="camera">
+            <span class="text-white">📷 Initializing camera...</span>
+        </div>
+        <small class="text-muted d-block mt-2">Scan the Student ID barcode</small>
+    </div>
+
+    <!-- Student ID -->
+    <div class="mb-3">
+        <label class="form-label">Scanned Student ID</label>
+        <input type="text" name="student_id" id="scannerInput" class="form-control" readonly required>
+    </div>
+
+    <!-- Name -->
+    <div class="mb-3">
+        <label class="form-label">Student Name</label>
+        <input type="text" name="student_name" id="nameInput" class="form-control" placeholder="Enter student name" required>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="d-flex justify-content-between mt-4">
+        <button type="submit" class="btn btn-success px-4">💾 Submit & Continue</button>
+    </div>
+
+</form>
+
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let lastResult = null;
+
+    Quagga.init({
+        inputStream: {
+            type: "LiveStream",
+            target: document.querySelector('#camera'),
+            constraints: {
+                width: { min: 640 },
+                height: { min: 480 },
+                facingMode: "environment",
+                aspectRatio: { ideal: 1.333 }
+            }
+        },
+        decoder: {
+            readers: ["code_128_reader", "code_39_reader"],
+        },
+        locator: {
+            patchSize: "medium",
+            halfSample: true
+        },
+        locate: true
+    }, function(err) {
+        if (err) {
+            console.error("Quagga init error:", err);
+            alert("Camera initialization failed. Please allow camera permissions.");
+            return;
+        }
+        Quagga.start();
+    });
+
+    Quagga.onDetected(function(result) {
+        let code = result.codeResult.code;
+        if (code && code !== lastResult) {
+            lastResult = code;
+            document.getElementById("scannerInput").value = code;
+        }
+    });
+});
+</script>
+
+</body>
+</html>
